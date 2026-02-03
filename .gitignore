@@ -1,0 +1,10 @@
+.env
+.env.development
+node_modules
+.vercel
+.mastra.mastra
+../
+pnpm-lock.yaml
+pnpm-workspace.yaml
+.mastra
+.DS_Store
