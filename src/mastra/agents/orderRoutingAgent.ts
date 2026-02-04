@@ -3,7 +3,6 @@ import { Agent } from '@mastra/core/agent';
 import { bedrock } from '@ai-sdk/amazon-bedrock';
 import * as orderRoutingTools from '../tools/orderRoutingTools';
 import { Memory } from '@mastra/memory';
-import { PostgresStore } from '@mastra/pg';
 import { PgVector } from '@mastra/pg';
 import { fastembed } from '@mastra/fastembed';
 
@@ -25,15 +24,10 @@ export const orderRoutingAgent = new Agent({
     ...orderRoutingTools
   },
   memory: new Memory({
-    storage: new PostgresStore({
-      id: 'order-routing-storage',
-      connectionString: process.env.DATABASE_URL || '',
-      schemaName: 'orderrouting',
-    }),
     vector: new PgVector({
       id: 'order-routing-vector-storage',
       connectionString: process.env.DATABASE_URL || '',
-      schemaName: 'orderrouting',
+      schemaName: process.env.DATABASE_SCHEMA || '',
     }),
     embedder: fastembed,
     options: {

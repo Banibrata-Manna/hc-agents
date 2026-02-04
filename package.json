@@ -11,6 +11,7 @@
     "@ai-sdk/openai-v5": "npm:@ai-sdk/openai@2.0.15",
     "@ai-sdk/provider": "^2.0.0",
     "@ai-sdk/amazon-bedrock": "^4.0.25",
+    "jsonwebtoken": "^9.0.2",
     "@mastra/auth": "latest",
     "@mastra/fastembed": "^1.0.0",
     "@mastra/client-js": "latest",
@@ -44,7 +45,8 @@
       "@mastra/observability": "link:../observability/mastra",
       "@mastra/pg": "link:../stores/pg",
       "@mastra/evals": "link:../packages/evals",
-      "mastra": "link:../packages/cli"
+      "mastra": "link:../packages/cli",
+      "@types/jsonwebtoken": "^9.0.10"
     }
   },
   "scripts": {

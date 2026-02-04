@@ -3,21 +3,28 @@ import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
 
 const API_BASE_URL = process.env.ORDER_ROUTING_API_URL || '';
-const API_TOKEN = process.env.ORDER_ROUTING_API_TOKEN || '';
 
 const callApi = async ({
   endpoint,
   method = 'GET',
   body,
   params,
+  token,
+  context
 }: {
   endpoint: string;
   method?: string;
   body?: any;
   params?: Record<string, string | number | undefined>;
+  token?: string;
+  context?: any;
 }) => {
-  if (!API_TOKEN) {
-    throw new Error('ORDER_ROUTING_API_TOKEN is not configured');
+  if (!token && context) {
+    const user = context?.requestContext?.get?.('user');
+    token = user?.maargOmsToken;
+  }
+  if (!token) {
+    throw new Error('token is not configured');
   }
 
   const url = new URL(`${API_BASE_URL}${endpoint}`);
@@ -33,7 +40,7 @@ const callApi = async ({
     method,
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${API_TOKEN}`,
+      'Authorization': `Bearer ${token}`,
     },
     body: body ? JSON.stringify(body) : undefined,
   });
@@ -60,8 +67,8 @@ export const listOrderRoutingGroups = createTool({
     pageSize: z.number().optional(),
   }),
   outputSchema: z.any(),
-  execute: async ({ pageIndex, pageSize }) => {
-    return await callApi({ endpoint: '/groups', params: { pageIndex, pageSize } });
+  execute: async ({ pageIndex, pageSize }, context) => {
+    return await callApi({ endpoint: '/groups', params: { pageIndex, pageSize }, context });
   },
 });
 
@@ -75,8 +82,8 @@ export const createOrderRoutingGroup = createTool({
     description: z.string().optional(),
   }),
   outputSchema: z.any(),
-  execute: async (data) => {
-    return await callApi({ endpoint: '/groups', method: 'POST', body: data });
+  execute: async (data, context) => {
+    return await callApi({ endpoint: '/groups', method: 'POST', body: data, context });
   },
 });
 
@@ -87,8 +94,8 @@ export const getOrderRoutingGroup = createTool({
     routingGroupId: z.string(),
   }),
   outputSchema: z.any(),
-  execute: async ({ routingGroupId }) => {
-    return await callApi({ endpoint: `/groups/${routingGroupId}` });
+  execute: async ({ routingGroupId }, context) => {
+    return await callApi({ endpoint: `/groups/${routingGroupId}`, context });
   },
 });
 
@@ -103,8 +110,8 @@ export const updateOrderRoutingGroup = createTool({
     description: z.string().optional(),
   }),
   outputSchema: z.any(),
-  execute: async ({ routingGroupId, ...data }) => {
-    return await callApi({ endpoint: `/groups/${routingGroupId}`, method: 'POST', body: data });
+  execute: async ({ routingGroupId, ...data }, context) => {
+    return await callApi({ endpoint: `/groups/${routingGroupId}`, method: 'POST', body: data, context });
   },
 });
 
@@ -115,8 +122,8 @@ export const deleteOrderRoutingGroup = createTool({
     routingGroupId: z.string(),
   }),
   outputSchema: z.any(),
-  execute: async ({ routingGroupId }) => {
-    return await callApi({ endpoint: `/groups/${routingGroupId}`, method: 'DELETE' });
+  execute: async ({ routingGroupId }, context) => {
+    return await callApi({ endpoint: `/groups/${routingGroupId}`, method: 'DELETE', context });
   },
 });
 
@@ -127,8 +134,8 @@ export const scheduleOrderRoutingGroupNow = createTool({
     routingGroupId: z.string(),
   }),
   outputSchema: z.any(),
-  execute: async ({ routingGroupId }) => {
-    return await callApi({ endpoint: `/groups/${routingGroupId}/runNow`, method: 'POST' });
+  execute: async ({ routingGroupId }, context) => {
+    return await callApi({ endpoint: `/groups/${routingGroupId}/runNow`, method: 'POST', context });
   },
 });
 
@@ -146,8 +153,8 @@ export const runOrderRoutingGroup = createTool({
     testDriveSessionId: z.string().optional(),
   }),
   outputSchema: z.any(),
-  execute: async ({ routingGroupId, ...data }) => {
-    return await callApi({ endpoint: `/groups/${routingGroupId}/run`, method: 'POST', body: data });
+  execute: async ({ routingGroupId, ...data }, context) => {
+    return await callApi({ endpoint: `/groups/${routingGroupId}/run`, method: 'POST', body: data, context });
   },
 });
 
@@ -158,8 +165,8 @@ export const getOrderRoutingGroupSchedule = createTool({
     routingGroupId: z.string(),
   }),
   outputSchema: z.any(),
-  execute: async ({ routingGroupId }) => {
-    return await callApi({ endpoint: `/groups/${routingGroupId}/schedule` });
+  execute: async ({ routingGroupId }, context) => {
+    return await callApi({ endpoint: `/groups/${routingGroupId}/schedule`, context });
   },
 });
 
@@ -174,8 +181,8 @@ export const updateOrderRoutingGroupSchedule = createTool({
     // Allow other ServiceJob fields loosely if needed, but these are main ones
   }),
   outputSchema: z.any(),
-  execute: async ({ routingGroupId, ...data }) => {
-    return await callApi({ endpoint: `/groups/${routingGroupId}/schedule`, method: 'POST', body: data });
+  execute: async ({ routingGroupId, ...data }, context) => {
+    return await callApi({ endpoint: `/groups/${routingGroupId}/schedule`, method: 'POST', body: data, context });
   },
 });
 
@@ -186,8 +193,8 @@ export const cloneOrderRoutingGroup = createTool({
     routingGroupId: z.string(),
   }),
   outputSchema: z.any(),
-  execute: async ({ routingGroupId }) => {
-    return await callApi({ endpoint: `/groups/${routingGroupId}/clone`, method: 'POST' });
+  execute: async ({ routingGroupId }, context) => {
+    return await callApi({ endpoint: `/groups/${routingGroupId}/clone`, method: 'POST', context });
   },
 });
 
@@ -198,8 +205,8 @@ export const listRoutingsInGroup = createTool({
     routingGroupId: z.string(),
   }),
   outputSchema: z.any(),
-  execute: async ({ routingGroupId }) => {
-    return await callApi({ endpoint: `/groups/${routingGroupId}/routings` });
+  execute: async ({ routingGroupId }, context) => {
+    return await callApi({ endpoint: `/groups/${routingGroupId}/routings`, context });
   },
 });
 
@@ -210,8 +217,8 @@ export const listRoutingRunsInGroup = createTool({
     routingGroupId: z.string(),
   }),
   outputSchema: z.any(),
-  execute: async ({ routingGroupId }) => {
-    return await callApi({ endpoint: `/groups/${routingGroupId}/routingRuns` });
+  execute: async ({ routingGroupId }, context) => {
+    return await callApi({ endpoint: `/groups/${routingGroupId}/routingRuns`, context });
   },
 });
 
@@ -222,8 +229,8 @@ export const getOrderRoutingGroupRaw = createTool({
     routingGroupId: z.string(),
   }),
   outputSchema: z.any(),
-  execute: async ({ routingGroupId }) => {
-    return await callApi({ endpoint: `/groups/${routingGroupId}/raw` });
+  execute: async ({ routingGroupId }, context) => {
+    return await callApi({ endpoint: `/groups/${routingGroupId}/raw`, context });
   },
 });
 
@@ -239,8 +246,8 @@ export const createOrderRouting = createTool({
     sequenceNum: z.number().optional(),
   }),
   outputSchema: z.any(),
-  execute: async (data) => {
-    return await callApi({ endpoint: '/routings', method: 'POST', body: data });
+  execute: async (data, context) => {
+    return await callApi({ endpoint: '/routings', method: 'POST', body: data, context });
   },
 });
 
@@ -251,8 +258,8 @@ export const getOrderRouting = createTool({
     orderRoutingId: z.string(),
   }),
   outputSchema: z.any(),
-  execute: async ({ orderRoutingId }) => {
-    return await callApi({ endpoint: `/routings/${orderRoutingId}` });
+  execute: async ({ orderRoutingId }, context) => {
+    return await callApi({ endpoint: `/routings/${orderRoutingId}`, context });
   },
 });
 
@@ -266,8 +273,8 @@ export const updateOrderRouting = createTool({
     sequenceNum: z.number().optional(),
   }),
   outputSchema: z.any(),
-  execute: async ({ orderRoutingId, ...data }) => {
-    return await callApi({ endpoint: `/routings/${orderRoutingId}`, method: 'POST', body: data });
+  execute: async ({ orderRoutingId, ...data }, context) => {
+    return await callApi({ endpoint: `/routings/${orderRoutingId}`, method: 'POST', body: data, context });
   },
 });
 
@@ -278,8 +285,8 @@ export const listRoutingRules = createTool({
     orderRoutingId: z.string(),
   }),
   outputSchema: z.any(),
-  execute: async ({ orderRoutingId }) => {
-    return await callApi({ endpoint: `/routings/${orderRoutingId}/rules` });
+  execute: async ({ orderRoutingId }, context) => {
+    return await callApi({ endpoint: `/routings/${orderRoutingId}/rules`, context });
   },
 });
 
@@ -290,8 +297,8 @@ export const listRoutingRuns = createTool({
     orderRoutingId: z.string(),
   }),
   outputSchema: z.any(),
-  execute: async ({ orderRoutingId }) => {
-    return await callApi({ endpoint: `/routings/${orderRoutingId}/routingRuns` });
+  execute: async ({ orderRoutingId }, context) => {
+    return await callApi({ endpoint: `/routings/${orderRoutingId}/routingRuns`, context });
   },
 });
 
@@ -302,8 +309,8 @@ export const cloneOrderRouting = createTool({
     orderRoutingId: z.string(),
   }),
   outputSchema: z.any(),
-  execute: async ({ orderRoutingId }) => {
-    return await callApi({ endpoint: `/routings/${orderRoutingId}/clone`, method: 'POST' });
+  execute: async ({ orderRoutingId }, context) => {
+    return await callApi({ endpoint: `/routings/${orderRoutingId}/clone`, method: 'POST', context });
   },
 });
 
@@ -314,8 +321,8 @@ export const getOrderRoutingSql = createTool({
     orderRoutingId: z.string(),
   }),
   outputSchema: z.any(),
-  execute: async ({ orderRoutingId }) => {
-    return await callApi({ endpoint: `/routings/${orderRoutingId}/sql` });
+  execute: async ({ orderRoutingId }, context) => {
+    return await callApi({ endpoint: `/routings/${orderRoutingId}/sql`, context });
   },
 });
 
@@ -326,8 +333,8 @@ export const getOrderRoutingOrderCount = createTool({
     orderRoutingId: z.string(),
   }),
   outputSchema: z.any(),
-  execute: async ({ orderRoutingId }) => {
-    return await callApi({ endpoint: `/routings/${orderRoutingId}/orderCount` });
+  execute: async ({ orderRoutingId }, context) => {
+    return await callApi({ endpoint: `/routings/${orderRoutingId}/orderCount`, context });
   },
 });
 
@@ -344,8 +351,8 @@ export const createOrderRoutingRule = createTool({
     sequenceNum: z.number().optional(),
   }),
   outputSchema: z.any(),
-  execute: async (data) => {
-    return await callApi({ endpoint: '/rules', method: 'POST', body: data });
+  execute: async (data, context) => {
+    return await callApi({ endpoint: '/rules', method: 'POST', body: data, context });
   },
 });
 
@@ -356,8 +363,8 @@ export const getOrderRoutingRule = createTool({
     routingRuleId: z.string(),
   }),
   outputSchema: z.any(),
-  execute: async ({ routingRuleId }) => {
-    return await callApi({ endpoint: `/rules/${routingRuleId}` });
+  execute: async ({ routingRuleId }, context) => {
+    return await callApi({ endpoint: `/rules/${routingRuleId}`, context });
   },
 });
 
@@ -372,8 +379,8 @@ export const updateOrderRoutingRule = createTool({
     sequenceNum: z.number().optional(),
   }),
   outputSchema: z.any(),
-  execute: async ({ routingRuleId, ...data }) => {
-    return await callApi({ endpoint: `/rules/${routingRuleId}`, method: 'POST', body: data });
+  execute: async ({ routingRuleId, ...data }, context) => {
+    return await callApi({ endpoint: `/rules/${routingRuleId}`, method: 'POST', body: data, context });
   },
 });
 
@@ -384,8 +391,8 @@ export const cloneOrderRoutingRule = createTool({
     routingRuleId: z.string(),
   }),
   outputSchema: z.any(),
-  execute: async ({ routingRuleId }) => {
-    return await callApi({ endpoint: `/rules/${routingRuleId}/clone`, method: 'POST' });
+  execute: async ({ routingRuleId }, context) => {
+    return await callApi({ endpoint: `/rules/${routingRuleId}/clone`, method: 'POST', context });
   },
 });
 
@@ -396,8 +403,8 @@ export const getOrderRoutingRuleSql = createTool({
     routingRuleId: z.string(),
   }),
   outputSchema: z.any(),
-  execute: async ({ routingRuleId }) => {
-    return await callApi({ endpoint: `/rules/${routingRuleId}/sql` });
+  execute: async ({ routingRuleId }, context) => {
+    return await callApi({ endpoint: `/rules/${routingRuleId}/sql`, context });
   },
 });
 
@@ -420,8 +427,8 @@ export const rejectOrderItems = createTool({
     })),
   }),
   outputSchema: z.any(),
-  execute: async ({ orderId, ...data }) => {
-    return await callApi({ endpoint: `/orders/${orderId}/reject`, method: 'POST', body: data });
+  execute: async ({ orderId, ...data }, context) => {
+    return await callApi({ endpoint: `/orders/${orderId}/reject`, method: 'POST', body: data, context });
   },
 });
 
@@ -432,7 +439,7 @@ export const getOrderRoutingHistory = createTool({
     orderId: z.string(),
   }),
   outputSchema: z.any(),
-  execute: async ({ orderId }) => {
-    return await callApi({ endpoint: `/orders/${orderId}/routing-history/recent` });
+  execute: async ({ orderId }, context) => {
+    return await callApi({ endpoint: `/orders/${orderId}/routing-history/recent`, context });
   },
 });
