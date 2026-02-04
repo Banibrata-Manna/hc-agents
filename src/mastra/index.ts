@@ -23,6 +23,7 @@ const config = {
   },
   server: {
     port: process.env.MASTRA_PORT || '',
+    host: process.env.MASTRA_HOST || 'localhost',
     build: {
       swaggerUI: true,
     },
