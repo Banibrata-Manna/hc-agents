@@ -22,6 +22,7 @@ const config = {
     sourcemap: true,
   },
   server: {
+    port: process.env.MASTRA_PORT || '',
     build: {
       swaggerUI: true,
     },
