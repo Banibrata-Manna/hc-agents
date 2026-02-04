@@ -41,15 +41,17 @@ export class PostgresJwtAuth extends MastraJwtAuth {
 
     const { userLoginId, iss } = user;
 
+    const normalizedSchemaName = iss.replace(/-/g, '_');
+
     const verifySchemaQuery = `
       SELECT 1
         FROM information_schema.schemata
         WHERE schema_name = $1;
     `;
 
-    const schemaResult = await this.store.db.oneOrNone(verifySchemaQuery, [iss]);
+    const schemaResult = await this.store.db.oneOrNone(verifySchemaQuery, [normalizedSchemaName]);
 
-    if (!iss || iss !== process.env.DATABASE_SCHEMA || !schemaResult) {
+    if (!iss || normalizedSchemaName !== process.env.DATABASE_SCHEMA || !schemaResult) {
       throw `Invalid issuer ${iss}`
     }
 
