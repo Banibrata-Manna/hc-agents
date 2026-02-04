@@ -36,8 +36,8 @@ const config = {
         '/settings',
         '/refresh-events',
         '/mastra.svg',
-        'swagger-ui',
-        'api/openapi.json'
+        '/swagger-ui',
+        '/api/openapi.json'
       ]
     }),
     apiRoutes: [
