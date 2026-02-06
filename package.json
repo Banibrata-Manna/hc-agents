@@ -23,6 +23,7 @@
     "@mastra/memory": "latest",
     "@mastra/observability": "latest",
     "@mastra/pg": "^1.0.0",
+    "@mastra/rag": "latest",
     "@mastra/voice-openai": "latest",
     "ai": "^4.3.19",
     "ai-v5": "npm:ai@^5.0.93",
@@ -46,7 +47,8 @@
       "@mastra/pg": "link:../stores/pg",
       "@mastra/evals": "link:../packages/evals",
       "mastra": "link:../packages/cli",
-      "@types/jsonwebtoken": "^9.0.10"
+      "@types/jsonwebtoken": "^9.0.10",
+      "@mastra/rag": "link:../packages/rag"
     }
   },
   "scripts": {
@@ -63,6 +65,7 @@
   "license": "Apache-2.0",
   "packageManager": "pnpm@10.9.0+sha512.0486e394640d3c1fb3c9d43d49cf92879ff74f8516959c235308f5a8f62e2e19528a65cdc2a3058f587cde71eba3d5b56327c8c33a97e4c4051ca48a10ca2d5f",
   "devDependencies": {
-    "msw": "^2.12.2"
+    "msw": "^2.12.2",
+    "tsx": "^4.21.0"
   }
 }
