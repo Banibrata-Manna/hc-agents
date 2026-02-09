@@ -1,11 +1,11 @@
 
 import { Agent } from '@mastra/core/agent';
-import { bedrock } from '@ai-sdk/amazon-bedrock';
 import * as orderRoutingTools from '../tools/orderRoutingTools';
 import { Memory } from '@mastra/memory';
 import { PgVector } from '@mastra/pg';
 import { fastembed } from '@mastra/fastembed';
 import { createVectorQueryTool } from '@mastra/rag';
+import { bedrockModel } from '../llm/bedrock';
 
 const vector = new PgVector({
   id: 'order-routing-vector-storage',
@@ -25,20 +25,20 @@ export const orderRoutingAgent = new Agent({
   name: 'Order Routing Assistant',
   description: 'An expert on order routing configuration. You help users manage order routing groups, routings, and rules.',
   instructions: `
-    You are an expert on order routing configuration. You help users manage order routing groups, routings, and rules.
-    You have access to a set of APIs to manage these configurations AND a vector search tool for documentation.
+    You help users manage order routing groups, routings, and rules.
 
-    Usage Rules:
-    1. STRICTLY use the 'vectorQueryTool' for questions about "how to" configure something, routing concepts, logic, or best practices.
-    2. Use the classification tools (list/get) to check the current state of groups, routings, or rules.
-    3. Use the modification tools (create/update) only when the user explicitly requests a change.
-    
-    When asking to create or update resources, always ensure you have the necessary IDs and required fields.
-    If a user asks for "groups", "routings" or "rules", use the corresponding list tools to show them what exists.
-    
-    Be helpful and guide the user through the configuration process.
+    Use vectorQueryTool for questions about "how to", "best ways", "strategies", "concepts", or "logic". The answer is in the documentation.
+    Use list* and get* tools for checking the current state of groups, routings, or rules.
+    Use create*, update*, delete*, and run* tools only when the user explicitly requests a change or an execution.
+
+    Rules:
+    - CLASSIFY the request first: Concept/Strategy -> Docs (vectorQueryTool); Inspection -> List/Get; Action -> Create/Update.
+    - NEVER answer a conceptual strategy question by inspecting the current state. Always check the docs first.
+    - NEVER guess a solution. If you don't know "how" to do something, search the docs.
+    - When asking to create or update resources, always ensure you have the necessary IDs and required fields.
+    - Respond with the final answer only. Do not include <thinking> or other internal reasoning.
   `,
-  model: bedrock('amazon.nova-pro-v1:0'),
+  model: bedrockModel,
   tools: {
     ...orderRoutingTools,
     vectorQueryTool
@@ -52,7 +52,7 @@ export const orderRoutingAgent = new Agent({
       semanticRecall: {
         topK: 3,
         messageRange: 2,
-        scope: 'resource',
+        scope: 'thread',
       },
     },
   })
