@@ -26,6 +26,7 @@ const config = {
     host: process.env.MASTRA_HOST || 'localhost',
     build: {
       swaggerUI: true,
+      openAPIDocs: true
     },
     auth: new PostgresJwtAuth({
       connectionString: process.env.DATABASE_URL || '',
