@@ -2,9 +2,13 @@ import { Mastra } from '@mastra/core/mastra';
 import { Observability, DefaultExporter, CloudExporter, SensitiveDataFilter } from '@mastra/observability';
 
 import { orderRoutingAgent } from './agents/orderRoutingAgent';
+import { networkingAgent } from './agents/networkingAgent';
+import { routingRagAgent } from './agents/routingRagAgent'; 
 import { PostgresStore } from '@mastra/pg';
 import { PinoLogger } from '@mastra/loggers';
 import { PostgresJwtAuth } from './auth/postgres-jwt-auth';
+
+import { updateOrderRoutingGroupWorkflow } from './workflows/orderRoutingWorkflows';
 
 const storage = new PostgresStore({
   id: 'hc-agent-store',
@@ -14,7 +18,12 @@ const storage = new PostgresStore({
 
 const config = {
   agents: {
-    orderRoutingAgent
+    orderRoutingAgent,
+    networkingAgent,
+    routingRagAgent
+  },
+  workflows: {
+    updateOrderRoutingGroupWorkflow
   },
   logger: new PinoLogger({ name: 'HC-Agents', level: 'debug' }),
   storage,
@@ -22,7 +31,7 @@ const config = {
     sourcemap: true,
   },
   server: {
-    port: process.env.MASTRA_PORT || '',
+    port: parseInt(process.env.MASTRA_PORT || '4111'),
     host: process.env.MASTRA_HOST || 'localhost',
     build: {
       swaggerUI: true,
@@ -46,8 +55,8 @@ const config = {
     apiRoutes: [
       {
         path: '/',
-        method: 'GET',
-        handler: (c) => c.redirect('/settings'),
+        method: 'GET' as const,
+        handler: (c: any) => c.redirect('/settings'),
         requiresAuth: false
       }
     ]

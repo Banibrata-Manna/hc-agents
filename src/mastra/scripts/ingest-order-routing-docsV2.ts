@@ -183,7 +183,11 @@ async function main() {
     const chunks = await doc.chunk({
       strategy: 'recursive',
       maxSize: 512,
-      overlap: 100,
+      overlap: 50,
+      separators: ["\n"],
+      extract: {
+        keywords: true,
+      },
     });
 
     if (chunks.length === 0) {
@@ -203,11 +207,18 @@ async function main() {
     await store.upsert({
       indexName: config.indexName,
       vectors: embeddings,
-      metadata: chunks.map((c: any) => ({
+      metadata: chunks.map((c: any, index: number) => ({
         text: c.text,
         source: sourceDir,
         filename: fileBasename,
-        ...c.metadata
+        ...c.metadata,
+        nested: {
+          keywords: c.metadata.excerptKeywords
+            .replace("KEYWORDS:", "")
+            .split(",")
+            .map((k: string) => k.trim()),
+          id: index,
+        },
       })),
       // Composite key filter: Delete only vectors matching BOTH source directory AND filename
       deleteFilter: { source: sourceDir, filename: fileBasename } 

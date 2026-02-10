@@ -5,7 +5,7 @@ import { Memory } from '@mastra/memory';
 import { PgVector } from '@mastra/pg';
 import { fastembed } from '@mastra/fastembed';
 import { createVectorQueryTool } from '@mastra/rag';
-import { bedrockModel } from '../llm/bedrock';
+import { openai } from '@ai-sdk/openai-v5';
 
 const vector = new PgVector({
   id: 'order-routing-vector-storage',
@@ -17,7 +17,7 @@ const vectorQueryTool = createVectorQueryTool({
   vectorStoreName: 'order-routing-local-vector',
   vectorStore: vector,
   indexName: 'routing_embeds',
-  model: fastembed,
+  model: openai.embedding("text-embedding-3-small"),
 });
 
 export const orderRoutingAgent = new Agent({
@@ -38,7 +38,7 @@ export const orderRoutingAgent = new Agent({
     - When asking to create or update resources, always ensure you have the necessary IDs and required fields.
     - Respond with the final answer only. Do not include <thinking> or other internal reasoning.
   `,
-  model: bedrockModel,
+  model: openai("gpt-4o-mini"),
   tools: {
     ...orderRoutingTools,
     vectorQueryTool

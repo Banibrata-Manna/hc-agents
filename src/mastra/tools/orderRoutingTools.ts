@@ -15,13 +15,20 @@ const callApi = async ({
   endpoint: string;
   method?: string;
   body?: any;
-  params?: Record<string, string | number | undefined>;
+  params?: Record<string, string | number | boolean | undefined>;
   token?: string;
   context?: any;
 }) => {
   if (!token && context) {
     const user = context?.requestContext?.get?.('user');
     token = user?.maargOmsToken;
+
+    if (!token) {
+      const authHeader = context?.get?.('Authorization') || context?.req?.header?.('Authorization');
+      if (authHeader && typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
+         token = authHeader.split(' ')[1];
+      }
+    }
   }
   if (!token) {
     throw new Error('token is not configured');
@@ -67,8 +74,8 @@ export const listOrderRoutingGroups = createTool({
     pageSize: z.number().optional(),
   }),
   outputSchema: z.any(),
-  execute: async ({ pageIndex, pageSize }, context) => {
-    return await callApi({ endpoint: '/groups', params: { pageIndex, pageSize }, context });
+  execute: async (data, context) => {
+    return await callApi({ endpoint: '/groups', params: { ...data, pageNoLimit: true }, context });
   },
 });
 
@@ -80,6 +87,7 @@ export const createOrderRoutingGroup = createTool({
     groupName: z.string(),
     sequenceNum: z.number().optional(),
     description: z.string().optional(),
+    jobName: z.string().optional(),
   }),
   outputSchema: z.any(),
   execute: async (data, context) => {
@@ -108,6 +116,7 @@ export const updateOrderRoutingGroup = createTool({
     groupName: z.string().optional(),
     sequenceNum: z.number().optional(),
     description: z.string().optional(),
+    jobName: z.string().optional(),
   }),
   outputSchema: z.any(),
   execute: async ({ routingGroupId, ...data }, context) => {
@@ -206,7 +215,7 @@ export const listRoutingsInGroup = createTool({
   }),
   outputSchema: z.any(),
   execute: async ({ routingGroupId }, context) => {
-    return await callApi({ endpoint: `/groups/${routingGroupId}/routings`, context });
+    return await callApi({ endpoint: `/groups/${routingGroupId}/routings`, params: { pageNoLimit: true }, context });
   },
 });
 
@@ -218,7 +227,7 @@ export const listRoutingRunsInGroup = createTool({
   }),
   outputSchema: z.any(),
   execute: async ({ routingGroupId }, context) => {
-    return await callApi({ endpoint: `/groups/${routingGroupId}/routingRuns`, context });
+    return await callApi({ endpoint: `/groups/${routingGroupId}/routingRuns`, params: { pageNoLimit: true }, context });
   },
 });
 
@@ -286,7 +295,7 @@ export const listRoutingRules = createTool({
   }),
   outputSchema: z.any(),
   execute: async ({ orderRoutingId }, context) => {
-    return await callApi({ endpoint: `/routings/${orderRoutingId}/rules`, context });
+    return await callApi({ endpoint: `/routings/${orderRoutingId}/rules`, params: { pageNoLimit: true }, context });
   },
 });
 
@@ -298,7 +307,7 @@ export const listRoutingRuns = createTool({
   }),
   outputSchema: z.any(),
   execute: async ({ orderRoutingId }, context) => {
-    return await callApi({ endpoint: `/routings/${orderRoutingId}/routingRuns`, context });
+    return await callApi({ endpoint: `/routings/${orderRoutingId}/routingRuns`, params: { pageNoLimit: true }, context });
   },
 });
 
